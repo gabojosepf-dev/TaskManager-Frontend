@@ -248,6 +248,110 @@ a { color: var(--accent); text-decoration: none; }
 
 .comment-form input { flex: 1; }
 
+.stats-bar {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.stat strong { font-size: 1.3rem; }
+.stat span { font-size: 0.75rem; color: var(--muted); }
+.stat-overdue strong { color: var(--danger); }
+
+.filter-bar {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.filter-bar input, .filter-bar select {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  color: var(--text);
+}
+
+.section-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.label-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.label-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.78rem;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.label-chip.active { color: #0f1115; font-weight: 600; }
+
+.empty-hint { font-size: 0.8rem; color: var(--muted); }
+
+.task-card .label-chip-row { margin-top: 0.4rem; }
+
+.subtask-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.4rem; }
+
+.subtask-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f1115;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+}
+
+.subtask-row label { flex-direction: row; align-items: center; gap: 0.5rem; }
+
+.subtask-done { text-decoration: line-through; color: var(--muted); }
+
+.subtask-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.activity-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 300px; overflow-y: auto; }
+
+.activity-item {
+  background: #0f1115;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.activity-time { font-size: 0.72rem; color: var(--muted); }
+
 @media (max-width: 720px) {
   .kanban-board { grid-template-columns: 1fr; }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 
-export default function TaskModal({ task, members, onClose, onUpdated, onDeleted }) {
+export default function TaskModal({ task, members, projectLabels, onClose, onUpdated, onDeleted, onLabelsChanged }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || '');
   const [priority, setPriority] = useState(task.priority);
@@ -9,10 +9,14 @@ export default function TaskModal({ task, members, onClose, onUpdated, onDeleted
   const [dueDate, setDueDate] = useState(task.due_date ? task.due_date.slice(0, 10) : '');
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [subtasks, setSubtasks] = useState([]);
+  const [newSubtask, setNewSubtask] = useState('');
+  const [taskLabels, setTaskLabels] = useState(task.labels || []);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api.getComments(task.ID).then(setComments).catch((err) => setError(err.message));
+    api.getSubtasks(task.ID).then(setSubtasks).catch((err) => setError(err.message));
   }, [task.ID]);
 
   async function handleSave() {
@@ -50,6 +54,54 @@ export default function TaskModal({ task, members, onClose, onUpdated, onDeleted
       setError(err.message);
     }
   }
+
+  async function handleAddSubtask(e) {
+    e.preventDefault();
+    if (!newSubtask.trim()) return;
+    try {
+      const subtask = await api.createSubtask(task.ID, newSubtask);
+      setSubtasks([...subtasks, subtask]);
+      setNewSubtask('');
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function toggleSubtask(subtask) {
+    try {
+      const updated = await api.updateSubtask(subtask.ID, { done: !subtask.done });
+      setSubtasks(subtasks.map((s) => (s.ID === subtask.ID ? updated : s)));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function removeSubtask(id) {
+    try {
+      await api.deleteSubtask(id);
+      setSubtasks(subtasks.filter((s) => s.ID !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function toggleLabel(label) {
+    const isAttached = taskLabels.some((l) => l.ID === label.ID);
+    try {
+      if (isAttached) {
+        await api.detachLabel(task.ID, label.ID);
+        setTaskLabels(taskLabels.filter((l) => l.ID !== label.ID));
+      } else {
+        await api.attachLabel(task.ID, label.ID);
+        setTaskLabels([...taskLabels, label]);
+      }
+      onLabelsChanged();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  const doneCount = subtasks.filter((s) => s.done).length;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -90,6 +142,27 @@ export default function TaskModal({ task, members, onClose, onUpdated, onDeleted
           </select>
         </label>
 
+        <div>
+          <span className="section-label">Etiquetas</span>
+          <div className="label-chip-row">
+            {projectLabels.map((label) => {
+              const active = taskLabels.some((l) => l.ID === label.ID);
+              return (
+                <button
+                  key={label.ID}
+                  type="button"
+                  className={`label-chip ${active ? 'active' : ''}`}
+                  style={{ borderColor: label.color, background: active ? label.color : 'transparent' }}
+                  onClick={() => toggleLabel(label)}
+                >
+                  {label.name}
+                </button>
+              );
+            })}
+            {projectLabels.length === 0 && <span className="empty-hint">Crea etiquetas desde el tablero</span>}
+          </div>
+        </div>
+
         <div className="modal-actions">
           <button onClick={handleSave}>Guardar cambios</button>
           <button className="delete-btn" onClick={handleDelete}>Eliminar tarea</button>
@@ -97,7 +170,31 @@ export default function TaskModal({ task, members, onClose, onUpdated, onDeleted
 
         <hr />
 
-        <h3>Comentarios</h3>
+        <span className="section-label">Subtareas ({doneCount}/{subtasks.length})</span>
+        <div className="subtask-list">
+          {subtasks.map((s) => (
+            <div key={s.ID} className="subtask-row">
+              <label>
+                <input type="checkbox" checked={s.done} onChange={() => toggleSubtask(s)} />
+                <span className={s.done ? 'subtask-done' : ''}>{s.title}</span>
+              </label>
+              <button className="subtask-remove" onClick={() => removeSubtask(s.ID)}>×</button>
+            </div>
+          ))}
+        </div>
+        <form className="comment-form" onSubmit={handleAddSubtask}>
+          <input
+            type="text"
+            placeholder="Nueva subtarea..."
+            value={newSubtask}
+            onChange={(e) => setNewSubtask(e.target.value)}
+          />
+          <button type="submit">Agregar</button>
+        </form>
+
+        <hr />
+
+        <span className="section-label">Comentarios</span>
         <div className="comment-list">
           {comments.map((c) => (
             <div key={c.ID} className="comment">
